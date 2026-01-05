@@ -1,5 +1,5 @@
 import streamlit as st
-from graphviz import Digraph
+from diagrams import build_pipeline_graph
 
 st.set_page_config(page_title="KFP Pipeline Visualizer (V0)", layout="centered")
 
@@ -7,18 +7,6 @@ st.title("KFP Pipeline Visualizer (V0)")
 
 st.write("A minimal DAG preview for a simple ETL pipeline.")
 
-g = Digraph()
-g.attr(rankdir="LR")
+g = build_pipeline_graph()
 
-g.node("Extract")
-g.node("Validate")
-g.node("Transform")
-g.node("Load")
-
-g.edges([
-    ("Extract", "Validate"),
-    ("Validate", "Transform"),
-    ("Transform", "Load"),
-])
-
-st.graphviz_chart(g)##
+st.graphviz_chart(g)
