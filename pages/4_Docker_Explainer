@@ -1,0 +1,14 @@
+from pathlib import Path
+import streamlit as st
+
+st.title("Why Docker shows up in the YAML")
+
+md = Path("src/content/docker.md").read_text(encoding="utf-8")
+st.markdown(md)
+
+st.subheader("Rule of thumb")
+st.markdown(
+    "- If your pipeline steps run **custom Python**: build/push images in CI.\n"
+    "- If your pipeline mostly orchestrates **managed services** (SQL engines, Dataflow templates, etc.): "
+    "compile/deploy can be enough, as long as your runtime is controlled.\n"
+)
