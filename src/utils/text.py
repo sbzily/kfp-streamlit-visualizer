@@ -6,6 +6,7 @@ MAPPING_MARKDOWN = """
 - **Transform**: heavier compute — Dataflow jobs or CustomJobs/Batch Prediction
 - **Load**: sink step — BigQuery, Cloud Storage, or Vertex AI managed dataset
 
+Additional patterns include CDC merges, snapshot diffs, and partitioned backfills.
 This V0 is intentionally simple; use the Visualizer page to switch views.
 """
 

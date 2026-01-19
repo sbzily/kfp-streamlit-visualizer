@@ -49,8 +49,40 @@ BACKFILL = PipelineDef(
     ],
 )
 
+CDC_MERGE = PipelineDef(
+    name="CDC Merge",
+    steps=[
+        Step("Read Change Feed", "Ingest CDC stream", annotation="Datastream / BQ"),
+        Step("Deduplicate", "Resolve late and duplicate events", annotation="SQL / CustomJob"),
+        Step("Merge Upsert", "Apply changes to target", annotation="BigQuery MERGE"),
+        Step("Audit Log", "Write audit rows", annotation="BQ / Logging"),
+    ],
+    edges=[
+        ("Read Change Feed", "Deduplicate"),
+        ("Deduplicate", "Merge Upsert"),
+        ("Merge Upsert", "Audit Log"),
+    ],
+)
+
+SNAPSHOT_DIFF = PipelineDef(
+    name="Snapshot Diff",
+    steps=[
+        Step("Extract Snapshot", "Full snapshot extract", annotation="CustomJob"),
+        Step("Compare Snapshots", "Detect changes", annotation="SQL / Dataflow"),
+        Step("Apply Deltas", "Update targets", annotation="BigQuery / GCS"),
+        Step("Publish Metrics", "Counts, drift, failures", annotation="BQ / Logging"),
+    ],
+    edges=[
+        ("Extract Snapshot", "Compare Snapshots"),
+        ("Compare Snapshots", "Apply Deltas"),
+        ("Apply Deltas", "Publish Metrics"),
+    ],
+)
+
 PIPELINES = {
     SIMPLE_ETL.name: SIMPLE_ETL,
     INCREMENTAL_LOAD.name: INCREMENTAL_LOAD,
     BACKFILL.name: BACKFILL,
+    CDC_MERGE.name: CDC_MERGE,
+    SNAPSHOT_DIFF.name: SNAPSHOT_DIFF,
 }

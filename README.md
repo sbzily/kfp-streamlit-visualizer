@@ -1,15 +1,16 @@
-# KFP Pipeline Visualizer (Streamlit)
+# Vertex AI Pipelines Explainer (Streamlit)
 
-A small Streamlit app that visualizes **KFP-style** pipelines and explains common **data engineering** patterns
-(incremental loads, backfills, retries, idempotency, caching).
+A Streamlit explainer site that visualizes **KFP-style** pipelines and documents how a production
+Vertex AI Pipelines workflow is built, deployed, and operated.
 
 ## Live demo
 Coming soon (Streamlit Community Cloud).
 
 ## What it shows
-- Pipeline DAG visualization
-- Parameter-driven pipeline variants (e.g. incremental vs backfill)
-- A simplified “pipeline spec” view (V0), ready to be replaced by real KFP compilation output later
+- Pipeline DAG visualizer with multiple patterns
+- CI/CD flow and architecture diagrams with toggles
+- Environment promotion, Docker, and ops explainers
+- A simplified "pipeline spec" view (V0), ready to be replaced by real KFP compilation output later
 
 ## Screenshots
 (Add 1–2 screenshots here once the UI stabilizes.)
@@ -19,4 +20,4 @@ Coming soon (Streamlit Community Cloud).
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run Home.py

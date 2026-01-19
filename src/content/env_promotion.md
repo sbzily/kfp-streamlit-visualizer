@@ -10,5 +10,9 @@ That’s a good start.
 - Protect the prod branch and require PR approvals.
 - Tie deployments to immutable versions (git SHA → artifact version → pipeline template version).
 
+### Promotion options
+- **Build once, promote artifacts**: fastest feedback, strongest traceability.
+- **Rebuild per environment**: safest when configs differ a lot across envs.
+
 ### Why this matters
 Promotion is not just “copy code to prod.” It’s a controlled change with traceability and a rollback path.

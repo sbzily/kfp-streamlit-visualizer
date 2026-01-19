@@ -1,67 +1,92 @@
 import streamlit as st
+from src.viz.diagrams import build_architecture_diagram
 
-st.set_page_config(page_title="KFP Pipeline Visualizer", page_icon="🧩", layout="wide")
+st.set_page_config(page_title="Vertex AI Pipelines Explainer", page_icon="🧩", layout="wide")
 
-st.title("KFP Pipeline Visualizer")
-st.caption("Explore a minimal Kubeflow Pipelines-style DAG and common data engineering patterns.")
+st.title("Vertex AI Pipelines: CI/CD + Visualizer")
+st.caption(
+    "A Streamlit explainer site that maps a production data-engineering workflow to "
+    "Vertex AI Pipelines, from GitHub branches to scheduled runs."
+)
 
 intro_col, action_col = st.columns([3, 2])
 
 with intro_col:
-    st.subheader("What you can do here")
+    st.subheader("What this is")
     st.write(
-        "This app demonstrates how pipeline steps map to execution concepts like dependencies, "
-        "retries, caching, and idempotency. Use it as a quick visual reference for how KFP-style "
-        "pipelines behave under different parameters."
+        "This site explains how a real-world data pipeline gets versioned, built, deployed, "
+        "and operated. Use it as a portfolio walkthrough or a quick architecture explainer."
     )
     st.markdown(
         """
-        **In this demo you can:**
-        - Inspect a simplified pipeline DAG.
-        - Compare incremental vs. backfill paths.
-        - See where caching, retries, and validation steps fit.
+        **You will find:**
+        - A pipeline DAG visualizer with multiple patterns.
+        - CI/CD flow diagrams that mirror Cloud Build triggers.
+        - Ops and environment promotion guidance.
         """
     )
 
 with action_col:
-    st.subheader("Quick start")
+    st.subheader("Quick tour")
     st.markdown(
         """
-        1. Open **Visualizer** in the left sidebar.
-        2. Toggle pipeline parameters to see the DAG update.
-        3. Read the pipeline spec summary to map nodes to execution stages.
+        1. Open **Visualizer** to explore pipeline DAGs.
+        2. Visit **CI/CD Flow** to see how deployments happen.
+        3. Use **Docker Explainer** to answer "why images?"
         """
     )
-    st.info("Tip: Use this view as a checklist when explaining pipelines to stakeholders.")
+    st.info("Tip: Use the diagrams as talking points in interviews or demos.")
 
 st.divider()
 
-metric_col_1, metric_col_2, metric_col_3 = st.columns(3)
-metric_col_1.metric("Pipeline nodes", "6", "Demo graph")
-metric_col_2.metric("Execution modes", "2", "Incremental & backfill")
-metric_col_3.metric("Key patterns", "5", "Caching, retries, validation")
+st.subheader("Workflow at a glance")
+with st.expander("Show the architecture map"):
+    include_ar = st.checkbox("Include Artifact Registry (Docker images)", value=True, key="home_ar")
+    st.graphviz_chart(build_architecture_diagram(include_artifact_registry=include_ar))
+
+metric_col_1, metric_col_2, metric_col_3, metric_col_4 = st.columns(4)
+metric_col_1.metric("Patterns", "5", "Incremental, backfill, CDC")
+metric_col_2.metric("Environments", "3", "Dev / Test / Prod")
+metric_col_3.metric("Artifacts", "4", "SQL, config, templates, images")
+metric_col_4.metric("Ops focus", "3", "Alerts, retries, rollbacks")
 
 st.divider()
 
-st.subheader("What’s included")
+st.subheader("Explore the site")
 left, right = st.columns(2)
 
 with left:
     st.markdown(
         """
-        **Visual concepts**
-        - Directed acyclic graph (DAG) layout
-        - Task dependencies and branching
-        - Parameter-driven pipeline variants
+        **Architecture**
+        - How GitHub, Cloud Build, GCS, and Vertex fit together.
+
+        **CI/CD Flow**
+        - The branch-driven build loop and quality gates.
+
+        **Visualizer**
+        - A DAG view of real pipeline patterns.
         """
     )
 
 with right:
     st.markdown(
         """
-        **Execution concepts**
-        - Incremental vs. backfill runs
-        - Idempotent processing steps
-        - Retry and caching behavior
+        **Data Engineering Patterns**
+        - Incremental, backfill, CDC, snapshot diff.
+
+        **Docker Explainer**
+        - When to build images and how they are referenced.
+
+        **Ops & Promotion**
+        - What it takes to run this in production.
         """
     )
+
+st.subheader("Key artifacts to highlight")
+st.markdown(
+    "- `cloudbuild.yaml` defining the build and deploy steps.\n"
+    "- Versioned pipeline templates stored in environment buckets.\n"
+    "- Optional container images in Artifact Registry.\n"
+    "- Scheduled Vertex Pipeline runs with logged execution history."
+)

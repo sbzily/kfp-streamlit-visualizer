@@ -12,3 +12,9 @@ The job fails, logs are available, and alerts should fire. Enterprise setups als
 
 ### Do we need Docker?
 Not always. If you have custom components, it’s the standard approach. If you’re mostly orchestrating managed services, you can sometimes treat images as already-managed.
+
+### Can we run this without Vertex?
+Yes. The same concepts map to Airflow, Prefect, or Dagster. Vertex just provides a managed control plane.
+
+### What do we show on a CV?
+Focus on repeatability: CI/CD, versioned artifacts, branch promotion, and observability practices.

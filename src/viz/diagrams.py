@@ -76,3 +76,168 @@ def build_cicd_cycle_diagram(
         g.edge("O", "6", style="dashed")
 
     return g
+
+
+PATTERN_DEFINITIONS = {
+    "Incremental Load (Watermark)": {
+        "nodes": {
+            "watermark": "Read Watermark",
+            "extract": "Extract Delta",
+            "validate": "Validate",
+            "merge": "Merge Upsert",
+            "update": "Update Watermark",
+        },
+        "edges": [
+            ("watermark", "extract"),
+            ("extract", "validate"),
+            ("validate", "merge"),
+            ("merge", "update"),
+        ],
+        "anchors": {"quality": "validate", "metrics": "merge", "metadata": "update"},
+    },
+    "Backfill (Partitioned)": {
+        "nodes": {
+            "plan": "Plan Partitions",
+            "extract": "Extract Partition",
+            "transform": "Transform",
+            "load": "Load",
+            "publish": "Publish Metrics",
+        },
+        "edges": [
+            ("plan", "extract"),
+            ("extract", "transform"),
+            ("transform", "load"),
+            ("load", "publish"),
+        ],
+        "anchors": {"quality": "transform", "metrics": "publish", "metadata": "plan"},
+    },
+    "CDC Merge": {
+        "nodes": {
+            "read": "Read Change Feed",
+            "dedupe": "De-duplicate",
+            "merge": "Apply Merge",
+            "audit": "Write Audit Log",
+        },
+        "edges": [
+            ("read", "dedupe"),
+            ("dedupe", "merge"),
+            ("merge", "audit"),
+        ],
+        "anchors": {"quality": "dedupe", "metrics": "audit", "metadata": "merge"},
+    },
+    "Snapshot Diff": {
+        "nodes": {
+            "snapshot": "Extract Snapshot",
+            "compare": "Compare Snapshots",
+            "apply": "Apply Diffs",
+            "publish": "Publish Metrics",
+        },
+        "edges": [
+            ("snapshot", "compare"),
+            ("compare", "apply"),
+            ("apply", "publish"),
+        ],
+        "anchors": {"quality": "compare", "metrics": "publish", "metadata": "snapshot"},
+    },
+}
+
+
+def build_pattern_diagram(
+    pattern: str,
+    include_quality_checks: bool = True,
+    include_metrics: bool = True,
+    include_metadata: bool = True,
+) -> Digraph:
+    g = Digraph()
+    g.attr(rankdir="LR")
+
+    spec = PATTERN_DEFINITIONS.get(pattern)
+    if not spec:
+        first_key = next(iter(PATTERN_DEFINITIONS))
+        spec = PATTERN_DEFINITIONS[first_key]
+
+    for node_id, label in spec["nodes"].items():
+        g.node(node_id, label, shape="box")
+
+    for a, b in spec["edges"]:
+        g.edge(a, b)
+
+    anchors = spec["anchors"]
+    if include_quality_checks:
+        g.node("dq", "Data quality checks", shape="note")
+        g.edge(anchors["quality"], "dq", style="dashed")
+    if include_metrics:
+        g.node("metrics", "Metrics + alerts", shape="note")
+        g.edge(anchors["metrics"], "metrics", style="dashed")
+    if include_metadata:
+        g.node("metadata", "Lineage/metadata", shape="note")
+        g.edge(anchors["metadata"], "metadata", style="dashed")
+
+    return g
+
+
+def build_docker_flow_diagram(
+    include_base_image: bool = True,
+    include_build_cache: bool = True,
+) -> Digraph:
+    g = Digraph()
+    g.attr(rankdir="LR")
+
+    g.node("repo", "Repo (components + Dockerfile)", shape="box")
+    g.node("build", "Cloud Build\nbuild image", shape="box")
+    g.node("ar", "Artifact Registry\nimage tag", shape="box")
+    g.node("template", "Pipeline template\n(image refs)", shape="box")
+    g.node("vertex", "Vertex Pipeline Job\n(run container)", shape="box")
+
+    g.edge("repo", "build")
+    g.edge("build", "ar")
+    g.edge("ar", "template")
+    g.edge("template", "vertex")
+
+    if include_base_image:
+        g.node("base", "Base image\n(Python/OS)", shape="note")
+        g.edge("base", "repo", style="dashed")
+
+    if include_build_cache:
+        g.node("cache", "Build cache", shape="note")
+        g.edge("cache", "build", style="dashed")
+
+    return g
+
+
+def build_env_promotion_diagram(
+    include_manual_approval: bool = True,
+    include_project_split: bool = True,
+    include_rebuild_per_env: bool = False,
+) -> Digraph:
+    g = Digraph()
+    g.attr(rankdir="LR")
+
+    g.node("dev", "Dev\n(branch + bucket)", shape="box")
+    g.node("test", "Test\n(branch + bucket)", shape="box")
+    g.node("prod", "Prod\n(branch + bucket)", shape="box")
+
+    g.node("artifact", "Versioned artifacts\n(SHA + template)", shape="box")
+    g.edge("dev", "artifact")
+
+    if include_rebuild_per_env:
+        g.node("build_test", "Rebuild in test", shape="box")
+        g.node("build_prod", "Rebuild in prod", shape="box")
+        g.edge("artifact", "build_test")
+        g.edge("build_test", "test")
+        g.edge("test", "build_prod")
+        g.edge("build_prod", "prod")
+    else:
+        g.edge("artifact", "test")
+        g.edge("test", "prod")
+
+    if include_manual_approval:
+        g.node("approve", "Manual approval", shape="note")
+        g.edge("test", "approve", style="dashed")
+        g.edge("approve", "prod", style="dashed")
+
+    if include_project_split:
+        g.node("projects", "Separate projects\n(optional)", shape="note")
+        g.edge("dev", "projects", style="dashed")
+
+    return g

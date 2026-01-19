@@ -4,10 +4,22 @@ from src.viz.graphviz_dag import build_graph
 from src.utils.text import MAPPING_MARKDOWN
 
 st.title("Pipeline Visualizer")
+st.caption("Explore pipeline shapes and map steps to real execution concepts.")
 st.markdown(MAPPING_MARKDOWN)
 
 st.sidebar.header("Pipeline")
 pattern = st.sidebar.selectbox("Pattern", list(PIPELINES.keys()), index=0)
+
+PATTERN_SUMMARIES = {
+    "Simple ETL": "Baseline extract → validate → transform → load flow.",
+    "Incremental Load": "Watermark-driven delta processing with idempotent merges.",
+    "Backfill": "Partitioned reprocessing with metrics at the end.",
+    "CDC Merge": "Change feed plus de-duplication before merge.",
+    "Snapshot Diff": "Full snapshot compare with applied deltas.",
+}
+
+st.sidebar.subheader("Pattern summary")
+st.sidebar.markdown(PATTERN_SUMMARIES.get(pattern, "Pipeline pattern overview."))
 
 st.sidebar.header("View")
 view = st.sidebar.selectbox("Diagram view", ["Basic", "Annotated"], index=0)

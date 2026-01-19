@@ -11,3 +11,8 @@ Scheduling is not the end — it’s the start of operations.
 - Backfills: controlled historical reprocessing
 - Data quality: “stop the line” behaviour when checks fail
 - Concurrency: prevent overlapping runs from clobbering state
+
+### SLOs worth tracking
+- Freshness: how late is the data compared to the SLA.
+- Completeness: percent of expected records delivered.
+- Cost: run duration and spend per run.

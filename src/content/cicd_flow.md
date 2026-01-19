@@ -14,3 +14,12 @@
 - Least-privilege IAM (separate build vs runtime identities)
 - Monitoring + alerting + rollback story
 - Versioning (git SHA ties to compiled templates and artifacts)
+
+### What gets versioned
+- `cloudbuild.yaml` stays stable; inputs change (SQL/config code).
+- A single git SHA maps to a compiled template and uploaded artifacts.
+- Optional: container image tags pin the runtime environment.
+
+### Promotion models
+- **Promote artifacts**: build once, deploy the same template to test/prod.
+- **Rebuild per env**: repeat build steps for each environment (safer, slower).
