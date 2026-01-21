@@ -9,14 +9,24 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
     If include_artifact_registry=True, show optional container image build/push.
     """
     g = Digraph()
-    g.attr(rankdir="LR")
+    g.attr(rankdir="LR", bgcolor="#f8fafc")
+    g.attr(
+        "node",
+        style="filled",
+        fontname="Helvetica",
+        color="#0f5fa8",
+        fontcolor="#0b1f44",
+        fillcolor="#e6f0fb",
+        penwidth="1.4",
+    )
+    g.attr("edge", color="#5b7bc6", penwidth="1.2")
 
-    g.node("GitHub", "GitHub\n(dev/test/prod branches)", shape="box")
-    g.node("CB", "Cloud Build\n(trigger + steps)", shape="box")
-    g.node("GCS", "GCS Buckets\n(SQL + config + compiled spec)", shape="box")
-    g.node("Vertex", "Vertex AI Pipelines\n(template/job)", shape="box")
-    g.node("Sched", "Scheduler\n(Cron / cadence)", shape="box")
-    g.node("Obs", "Monitoring & Alerting\n(Logs/metrics/on-failure)", shape="box")
+    g.node("GitHub", "GitHub\n(dev/test/prod branches)", shape="box", fillcolor="#e8f5e9")
+    g.node("CB", "Cloud Build\n(trigger + steps)", shape="box", fillcolor="#e3f2fd")
+    g.node("GCS", "GCS Buckets\n(SQL + config + compiled spec)", shape="box", fillcolor="#fff8e1")
+    g.node("Vertex", "Vertex AI Pipelines\n(template/job)", shape="box", fillcolor="#ede7f6")
+    g.node("Sched", "Scheduler\n(Cron / cadence)", shape="box", fillcolor="#fce4ec")
+    g.node("Obs", "Monitoring & Alerting\n(Logs/metrics/on-failure)", shape="box", fillcolor="#f3e5f5")
 
     g.edge("GitHub", "CB", label="push/merge")
     g.edge("CB", "GCS", label="upload artifacts")
@@ -25,7 +35,7 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
     g.edge("Vertex", "Obs", label="logs/metrics")
 
     if include_artifact_registry:
-        g.node("AR", "Artifact Registry\n(container images)", shape="box")
+        g.node("AR", "Artifact Registry\n(container images)", shape="box", fillcolor="#e0f7fa")
         g.edge("CB", "AR", label="optional: build/push")
         g.edge("Vertex", "AR", label="pull images")
 
