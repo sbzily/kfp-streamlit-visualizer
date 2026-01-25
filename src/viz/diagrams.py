@@ -9,7 +9,16 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
     If include_artifact_registry=True, show optional container image build/push.
     """
     g = Digraph()
-    g.attr(rankdir="LR", bgcolor="#f8fafc")
+    g.attr(
+        rankdir="TB",
+        bgcolor="#f8fafc",
+        nodesep="0.2",
+        ranksep="0.25",
+        pad="0.08",
+        ratio="compress",
+        size="5.5,6.5!",
+        dpi="65",
+    )
     g.attr(
         "node",
         style="filled",
@@ -18,15 +27,17 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
         fontcolor="#0b1f44",
         fillcolor="#e6f0fb",
         penwidth="1.4",
+        fontsize="15",
+        margin="0.06,0.04",
     )
-    g.attr("edge", color="#5b7bc6", penwidth="1.2")
+    g.attr("edge", color="#5b7bc6", penwidth="1.0", fontsize="15")
 
-    g.node("GitHub", "GitHub\n(dev/test/prod branches)", shape="box", fillcolor="#e8f5e9")
-    g.node("CB", "Cloud Build\n(trigger + steps)", shape="box", fillcolor="#e3f2fd")
-    g.node("GCS", "GCS Buckets\n(SQL + config + compiled spec)", shape="box", fillcolor="#fff8e1")
-    g.node("Vertex", "Vertex AI Pipelines\n(template/job)", shape="box", fillcolor="#ede7f6")
-    g.node("Sched", "Scheduler\n(Cron / cadence)", shape="box", fillcolor="#fce4ec")
-    g.node("Obs", "Monitoring & Alerting\n(Logs/metrics/on-failure)", shape="box", fillcolor="#f3e5f5")
+    g.node("GitHub", "GitHub\n(dev/test/prod)", shape="box", fillcolor="#e8f5e9")
+    g.node("CB", "Cloud Build\n(CI/CD)", shape="box", fillcolor="#e3f2fd")
+    g.node("GCS", "GCS Buckets\n(artifacts)", shape="box", fillcolor="#fff8e1")
+    g.node("Vertex", "Vertex Pipelines\n(template/job)", shape="box", fillcolor="#ede7f6")
+    g.node("Sched", "Scheduler\n(cadence)", shape="box", fillcolor="#fce4ec")
+    g.node("Obs", "Monitoring\n(alerts)", shape="box", fillcolor="#f3e5f5")
 
     g.edge("GitHub", "CB", label="push/merge")
     g.edge("CB", "GCS", label="upload artifacts")
@@ -35,7 +46,7 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
     g.edge("Vertex", "Obs", label="logs/metrics")
 
     if include_artifact_registry:
-        g.node("AR", "Artifact Registry\n(container images)", shape="box", fillcolor="#e0f7fa")
+        g.node("AR", "Artifact Registry\n(images)", shape="box", fillcolor="#e0f7fa")
         g.edge("CB", "AR", label="optional: build/push")
         g.edge("Vertex", "AR", label="pull images")
 

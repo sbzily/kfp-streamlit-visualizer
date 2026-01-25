@@ -4,7 +4,7 @@ from src.viz.diagrams import build_architecture_diagram
 st.set_page_config(
     page_title="Vertex AI Pipelines Explainer",
     page_icon="🧩",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded",
 )
 
@@ -16,10 +16,18 @@ st.markdown(
     .stApp {
         background: radial-gradient(circle at top, #f8fbff 0%, #f3f6fb 55%, #edf1f7 100%);
     }
-    .block-container { max-width: 900px; padding-top: 2.5rem; }
+    .block-container { max-width: 1280px; padding-top: 2.5rem; }
     h1 { letter-spacing: -0.02em; }
     .stage-card { border-radius: 12px; padding: 14px 16px; margin-bottom: 14px; color: #0b1f44; }
     details summary { font-size: 1.02rem; }
+    .detail-block p { margin-bottom: 0.6rem; }
+    .stage-card p { margin: 0.45rem 0; }
+    div[data-testid="stGraphViz"] { overflow: visible; }
+    div[data-testid="stGraphViz"] svg {
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -37,91 +45,103 @@ sections = [
     "Monitoring & Alerting",
 ]
 selected = st.sidebar.radio("Navigate", sections, index=0)
-st.sidebar.info("Single-page mode for now. Sidebar jumps between stage sections.")
 
-st.title("Vertex AI Pipelines, explained clearly")
-st.caption("A polished, interview-ready walkthrough of a production data engineering workflow.")
+
+st.title("Vertex AI Pipelines for Data Engineering")
+st.caption("A practical walkthrough of how production data pipelines are built, deployed, and operated.")
 st.write(
-    "For many data engineers, Vertex AI can feel unfamiliar because it arrives from the ML world. "
-    "Under the hood it is built on Kubeflow Pipelines (KFP), which means you get the same DAG-based "
-    "orchestration concepts—components, templates, parameters, and runs—wrapped in a managed Google control plane."
+    "Vertex AI can feel unfamiliar because it is branded for ML, yet the mechanics are classic pipeline "
+    "orchestration. Under the hood it is Kubeflow Pipelines (KFP): a DAG of containerized steps compiled "
+    "into a template and run by a managed control plane."
 )
 st.write(
-    "This single-page explainer shows how code changes travel from GitHub to scheduled pipeline runs, "
-    "with traceable artifacts, clear ownership, and a production-ready CI/CD loop."
+    "This explainer connects the dots for data engineering"
 )
-
 
 st.divider()
 
 st.subheader("Architecture walkthrough")
+st.write(
+    "Here is an end-to-end workflow on Vertex AI Pipelines. Each stage expands with concrete, "
+    "data engineering detail so you can explain what happens and why it matters."
+)
 st.caption("Use the sidebar to jump between stages.")
 
 if selected == "Overview":
-    st.graphviz_chart(build_architecture_diagram())
+    st.graphviz_chart(build_architecture_diagram(), use_container_width=True)
 
     stages = [
-        {
-            "title": "GitHub (source of truth)",
-            "color": "#e8f5e9",
-            "points": [
-                "Environment branches (dev/test/prod) drive promotion strategy.",
-                "Pull requests enforce review, tests, and approvals.",
-                "Holds SQL, configs, pipeline code, and Dockerfiles tied to a git SHA.",
-            ],
+    {
+        "title": "GitHub",
+        "color": "#e8f5e9",
+        "points": [
+            "Branches map to dev/test/prod so promoting a change is a merge, not a manual copy.",
+            "Pull requests are the checkpoint where reviews, tests, and policy checks happen before anything lands.",
+            "The repo keeps the SQL, configs, pipeline definitions, and Dockerfiles together so the pipeline’s behaviour is versioned as one unit.",
+            "Branch protections and CODEOWNERS make it clear who owns what and who must approve changes.",
+            "Every merge produces a git SHA, which is just a unique ID for that exact commit; it’s the version stamp you can trace across templates, images, and uploaded artifacts.",
+        ],
+
         },
         {
             "title": "Cloud Build (CI/CD)",
             "color": "#e3f2fd",
             "points": [
-                "Triggers on branch updates and executes `cloudbuild.yaml` steps.",
-                "Builds and pushes container images for custom components.",
-                "Compiles pipeline templates and tags outputs with the git SHA.",
+                "Branch triggers kick off `cloudbuild.yaml` with env-specific substitutions.",
+                "Validation runs first: SQL linting, schema checks, and unit tests.",
+                "Custom components are built into images and pushed to Artifact Registry.",
+                "Pipeline templates are compiled with pinned image tags and parameters.",
+                "Artifacts are uploaded to GCS under deterministic SHA paths.",
             ],
         },
         {
             "title": "Artifact Registry (images)",
             "color": "#e0f7fa",
             "points": [
-                "Stores immutable images tagged with git SHA or release version.",
-                "Vertex pulls the exact image referenced in the template.",
+                "Images are immutable and tagged with git SHA or a release version.",
+                "Vertex pulls the exact image referenced in the compiled template.",
                 "Pinned base images keep dependencies stable across environments.",
+                "Build and runtime permissions are split to reduce risk.",
             ],
         },
         {
             "title": "GCS (artifacts & templates)",
             "color": "#fff8e1",
             "points": [
-                "Environment buckets store SQL/config artifacts and compiled templates.",
+                "Environment buckets store SQL, configs, and compiled templates.",
                 "Every upload is tied to a git SHA for traceability and rollback.",
-                "Creates a durable audit trail of what actually ran.",
+                "Folder structure by SHA makes audits and reproductions simple.",
+                "Schema snapshots or data contracts can live alongside inputs.",
             ],
         },
         {
             "title": "Vertex AI Pipelines",
             "color": "#ede7f6",
             "points": [
-                "Deploys or updates pipeline templates built by CI.",
-                "Runs jobs that pull images and configs from versioned artifacts.",
-                "Tracks run lineage, metadata, and execution history.",
+                "Deploys templates built in CI and executes pipeline jobs.",
+                "Components pull images and configs from versioned artifacts.",
+                "Run metadata and lineage make troubleshooting and audits easier.",
+                "Caching, retries, and timeouts are set per component.",
             ],
         },
         {
             "title": "Scheduler",
             "color": "#fce4ec",
             "points": [
-                "Runs on cadence and controls concurrency and catch-up behavior.",
-                "Pins jobs to specific template versions for repeatability.",
-                "Separates incremental runs from heavy backfill workloads.",
+                "Cadence is tied to SLAs, not convenience.",
+                "Concurrency limits prevent overlapping runs on shared tables.",
+                "Backfills run as separate jobs with larger resource profiles.",
+                "Schedules pin template versions to keep runs reproducible.",
             ],
         },
         {
             "title": "Monitoring & Alerting",
             "color": "#f3e5f5",
             "points": [
-                "Alerts on failed runs, data quality checks, and SLO breaches.",
-                "Dashboards for freshness, completeness, duration, and cost.",
-                "Rollback path to a known-good template + pinned image.",
+                "Alerts fire on failed runs, data quality checks, and SLA breaches.",
+                "Dashboards track freshness, completeness, duration, and cost.",
+                "Runbooks define rollback to a known-good template + image.",
+                "Ownership and on-call rotation keep the pipeline supported.",
             ],
         },
     ]
@@ -129,12 +149,12 @@ if selected == "Overview":
     col_left, col_right = st.columns(2)
     for idx, stage in enumerate(stages):
         col = col_left if idx % 2 == 0 else col_right
-        points_html = "".join([f"<li>{p}</li>" for p in stage["points"]])
+        points_html = "".join([f"<p>{p}</p>" for p in stage["points"]])
         col.markdown(
             f"""
             <details style="background:{stage['color']};" class="stage-card">
                 <summary style="font-weight:700; cursor:pointer;">{stage['title']}</summary>
-                <ul style="margin-top:8px;">{points_html}</ul>
+                <div style="margin-top:8px;">{points_html}</div>
             </details>
             """,
             unsafe_allow_html=True,
@@ -147,10 +167,16 @@ if selected == "GitHub (source of truth)":
         "or pipeline code begins here and is tied to a git SHA."
     )
     st.markdown(
-        "- Branch-per-environment aligns directly with dev/test/prod buckets and runtime identities.\n"
-        "- Pull requests enforce review, tests, and approvals before deployment.\n"
-        "- Tags and releases provide stable versions for backfills and audits.\n"
-        "- Store infra-as-code (Cloud Build triggers, IAM) alongside pipeline code."
+        """
+        <div class="detail-block">
+            <p><strong>Branch strategy:</strong> Align dev/test/prod branches with buckets and runtime identities.</p>
+            <p><strong>Change control:</strong> Pull requests enforce review, tests, and approvals before merge.</p>
+            <p><strong>Versioning:</strong> Tags and releases provide stable references for audits and backfills.</p>
+            <p><strong>Ownership:</strong> CODEOWNERS and branch protections make accountability clear.</p>
+            <p><strong>Infrastructure:</strong> Keep Cloud Build triggers, IAM, and configs in the same repo.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     st.info("Good interview hook: show how a single git SHA maps to artifacts, templates, and images.")
 
@@ -161,11 +187,16 @@ if selected == "Cloud Build (CI/CD)":
         "the pipeline will need to run."
     )
     st.markdown(
-        "- Validates SQL/configs and runs unit/integration checks early.\n"
-        "- Builds container images when you own runtime code.\n"
-        "- Compiles the KFP pipeline template with pinned image tags.\n"
-        "- Uploads artifacts to environment-specific GCS buckets.\n"
-        "- Emits build metadata used for traceability and rollback."
+        """
+        <div class="detail-block">
+            <p><strong>Validation:</strong> SQL linting, data contract checks, and tests fail fast.</p>
+            <p><strong>Packaging:</strong> Custom component code becomes a container image with pinned deps.</p>
+            <p><strong>Compilation:</strong> KFP templates are built with explicit image tags and parameters.</p>
+            <p><strong>Publishing:</strong> Artifacts are uploaded to env buckets under the git SHA.</p>
+            <p><strong>Traceability:</strong> Build metadata links commits to templates and images.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     st.code(
         "steps:\n"
@@ -184,10 +215,15 @@ if selected == "Artifact Registry (images)":
         "as a single deployable unit."
     )
     st.markdown(
-        "- Tag images with git SHA or release version to lock the runtime.\n"
-        "- Enforce pull permissions for the runtime service account.\n"
-        "- Standardize base images to keep dependencies consistent.\n"
-        "- Use vulnerability scanning and provenance where possible."
+        """
+        <div class="detail-block">
+            <p><strong>Tagging:</strong> Use git SHA or release tags so the runtime is immutable.</p>
+            <p><strong>Permissions:</strong> Runtime service accounts must have pull access to the registry.</p>
+            <p><strong>Base images:</strong> Standardize images to reduce drift across environments.</p>
+            <p><strong>Security:</strong> Enable scanning and provenance to catch vulnerable builds early.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 if selected == "GCS (artifacts & templates)":
@@ -197,10 +233,15 @@ if selected == "GCS (artifacts & templates)":
         "compiled templates."
     )
     st.markdown(
-        "- One bucket per environment to avoid cross-env contamination.\n"
-        "- Folder structure by git SHA for deterministic rollbacks.\n"
-        "- Keep raw inputs and compiled templates immutable.\n"
-        "- Store data contracts or schema snapshots alongside artifacts."
+        """
+        <div class="detail-block">
+            <p><strong>Isolation:</strong> One bucket per environment prevents cross-env contamination.</p>
+            <p><strong>Rollback:</strong> Folder structure by git SHA makes rollbacks deterministic.</p>
+            <p><strong>Immutability:</strong> Treat compiled templates and inputs as append-only artifacts.</p>
+            <p><strong>Contracts:</strong> Store schema snapshots or data contracts with the inputs.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 if selected == "Vertex AI Pipelines":
@@ -210,10 +251,15 @@ if selected == "Vertex AI Pipelines":
         "orchestrator with logs, lineage, and scheduling."
     )
     st.markdown(
-        "- Templates reference GCS artifacts and container images built in CI.\n"
-        "- Components map to data engineering steps: extract, validate, transform, load.\n"
-        "- Metadata capture enables lineage and auditability.\n"
-        "- Retry behavior and caching are configured at the component level."
+        """
+        <div class="detail-block">
+            <p><strong>Templates:</strong> Reference GCS artifacts and container images built in CI.</p>
+            <p><strong>Components:</strong> Map to extract, validate, transform, and load steps.</p>
+            <p><strong>Lineage:</strong> Metadata and run history support auditability.</p>
+            <p><strong>Reliability:</strong> Retries, caching, and timeouts are set per component.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 if selected == "Scheduler":
@@ -223,10 +269,15 @@ if selected == "Scheduler":
         "and how often your pipelines run."
     )
     st.markdown(
-        "- Cadence tied to SLAs (hourly, daily, weekly).\n"
-        "- Controls concurrency to avoid clobbering shared tables.\n"
-        "- Backfills run on separate schedules or one-off jobs.\n"
-        "- Pin scheduler to specific template versions for repeatability."
+        """
+        <div class="detail-block">
+            <p><strong>Cadence:</strong> Schedules reflect SLAs (hourly, daily, weekly).</p>
+            <p><strong>Concurrency:</strong> Limits prevent overlapping runs on shared targets.</p>
+            <p><strong>Backfills:</strong> Separate schedules or one-off jobs with larger resources.</p>
+            <p><strong>Versioning:</strong> Schedulers pin template versions for repeatable runs.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 if selected == "Monitoring & Alerting":
@@ -236,8 +287,13 @@ if selected == "Monitoring & Alerting":
         "and the data is trustworthy."
     )
     st.markdown(
-        "- Alerts on failed runs, data quality checks, and SLA breaches.\n"
-        "- Dashboards for freshness, completeness, duration, and cost.\n"
-        "- Define ownership: on-call, escalation, and rollback playbooks.\n"
-        "- Track data incidents just like application incidents."
+        """
+        <div class="detail-block">
+            <p><strong>Alerts:</strong> Failed runs, data quality checks, and SLA breaches.</p>
+            <p><strong>Dashboards:</strong> Freshness, completeness, duration, and cost.</p>
+            <p><strong>Ownership:</strong> On-call, escalation, and rollback playbooks.</p>
+            <p><strong>Incidents:</strong> Track data issues with the same rigor as app outages.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
