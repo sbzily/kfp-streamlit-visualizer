@@ -36,7 +36,7 @@ st.markdown(
 st.sidebar.title("Stage Pages")
 sections = [
     "Overview",
-    "GitHub (source of truth)",
+    "GitHub",
     "Cloud Build (CI/CD)",
     "Artifact Registry (images)",
     "GCS (artifacts & templates)",
@@ -50,22 +50,21 @@ selected = st.sidebar.radio("Navigate", sections, index=0)
 st.title("Vertex AI Pipelines for Data Engineering")
 st.caption("A practical walkthrough of how production data pipelines are built, deployed, and operated.")
 st.write(
-    "Vertex AI can feel unfamiliar because it is branded for ML, yet the mechanics are classic pipeline "
-    "orchestration. Under the hood it is Kubeflow Pipelines (KFP): a DAG of containerized steps compiled "
-    "into a template and run by a managed control plane."
+    "Vertex AI can feel unfamiliar to Data Engineers because it is branded for machine learning pipelines; yet the mechanics are still the classic pipelines we see in data engineering. "
+    "Under the hood, Vertex AI is just Kubeflow Pipelines (KFP): a DAG of containerized steps compiled "
+    "into a template and run by a managed control plane within Google Cloud."
 )
 st.write(
-    "This explainer connects the dots for data engineering"
+    "This explainer connects the dots for data engineers looking to leverage Vertex AI Pipelines for their own ETL/ELT workloads. "
 )
 
 st.divider()
 
-st.subheader("Architecture walkthrough")
+st.subheader("Architecture Overview")
 st.write(
-    "Here is an end-to-end workflow on Vertex AI Pipelines. Each stage expands with concrete, "
-    "data engineering detail so you can explain what happens and why it matters."
+    "Here is an end-to-end workflow on Vertex AI Pipelines. Under the daigram, each stage expands with a brief overview of what happens in that step. "
+    "Use the sidebar to jump between stages and learn more details about each part of the workflow."
 )
-st.caption("Use the sidebar to jump between stages.")
 
 if selected == "Overview":
     st.graphviz_chart(build_architecture_diagram(), use_container_width=True)

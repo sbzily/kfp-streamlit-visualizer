@@ -35,8 +35,8 @@ def build_architecture_diagram(include_artifact_registry: bool = True) -> Digrap
     g.node("GitHub", "GitHub\n(dev/test/prod)", shape="box", fillcolor="#e8f5e9")
     g.node("CB", "Cloud Build\n(CI/CD)", shape="box", fillcolor="#e3f2fd")
     g.node("GCS", "GCS Buckets\n(artifacts)", shape="box", fillcolor="#fff8e1")
-    g.node("Vertex", "Vertex Pipelines\n(template/job)", shape="box", fillcolor="#ede7f6")
-    g.node("Sched", "Scheduler\n(cadence)", shape="box", fillcolor="#fce4ec")
+    g.node("Vertex", "Vertex Pipelines\n(KFP Components with ETL/ELT Steps)", shape="box", fillcolor="#ede7f6")
+    g.node("Sched", "Scheduler", shape="box", fillcolor="#fce4ec")
     g.node("Obs", "Monitoring\n(alerts)", shape="box", fillcolor="#f3e5f5")
 
     g.edge("GitHub", "CB", label="push/merge")
